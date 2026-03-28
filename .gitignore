@@ -3,4 +3,6 @@ __pycache__/
 *.pyc
 dist/
 *.egg-info/
+test_real.py
+test_media.apkg
 .envrc
