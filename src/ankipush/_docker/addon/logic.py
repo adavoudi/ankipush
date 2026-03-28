@@ -90,6 +90,20 @@ def run(mw):
         _print(f"[!] Import failed: {e}")
         _exit(1)
 
+    # Extract media from the .apkg and register each file via add_file() so Anki
+    # atomically writes the file, computes its SHA1, and marks it pending upload.
+    import zipfile, json
+    try:
+        with zipfile.ZipFile(apkg_path) as zf:
+            manifest = json.loads(zf.read("media").decode())
+            mgr = mw.col.media()
+            for zipped_name, real_name in manifest.items():
+                data = zf.read(zipped_name)
+                mgr.add_file(real_name, data)
+                _print(f"[i] Registered media: {real_name}")
+    except Exception as e:
+        _print(f"[!] Media extraction error: {e}")
+
     # --- Sync push ---
     _print("[i] Syncing to AnkiWeb...")
     try:
@@ -119,27 +133,16 @@ def run(mw):
     # --- Media sync ---
     _print("[i] Syncing media to AnkiWeb...")
     try:
-        import time
-        import threading
         media_auth = mw.pm.sync_auth()
-        done = threading.Event()
-
-        def on_done(fut):
-            done.set()
-
-        mw.taskman.run_in_background(lambda: mw.col.sync_media(media_auth), on_done)
-
-        # Poll until done, with a 120s timeout
+        mw.col.sync_media(media_auth)  # spawns background thread, returns None immediately
         deadline = time.time() + 120
         while time.time() < deadline:
-            if done.wait(timeout=0.5):
-                break
             status = mw.col.media_sync_status()
             if not status.active:
                 break
             p = status.progress
             _print(f"[i] Media: +{p.added} -{p.removed} checked:{p.checked}")
-
+            time.sleep(0.25)
         _print("[i] Media sync complete.")
     except Exception as e:
         _print(f"[!] Media sync error (non-fatal): {e}")

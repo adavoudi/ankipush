@@ -70,14 +70,34 @@ sync_deck(
 
 Each user gets an isolated subdirectory keyed by their email, so multiple accounts can be used safely.
 
+## Media files
+
+`.apkg` files with audio or image media are fully supported. Media files bundled in the package are automatically extracted and synced to AnkiWeb alongside the cards.
+
+Use `[sound:filename.mp3]` in card fields for audio and `<img src="filename.png">` for images, and include the files in `genanki.Package.media_files`:
+
+```python
+import genanki
+
+model = genanki.Model(...)
+note = genanki.Note(model=model, fields=["[sound:audio.mp3]<img src=\"image.png\">", "back"])
+deck = genanki.Deck(...)
+deck.add_note(note)
+
+package = genanki.Package(deck)
+package.media_files = ["/path/to/audio.mp3", "/path/to/image.png"]
+package.write_to_file("deck.apkg")
+```
+
 ## How it works
 
 1. Starts a headless Anki instance in Docker
 2. Logs in to AnkiWeb (or a custom sync server) using the provided credentials
 3. Pulls the user's existing collection to avoid data loss
-4. Imports the `.apkg` file
+4. Imports the `.apkg` file and registers any bundled media files for sync
 5. Syncs the merged collection back to AnkiWeb
-6. Exits and cleans up the container
+6. Syncs media files to AnkiWeb
+7. Exits and cleans up the container
 
 ## Custom sync server
 

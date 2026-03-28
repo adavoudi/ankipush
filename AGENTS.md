@@ -130,9 +130,10 @@ make clean
 │  1. Auth   — sync_login() or reuse cached session           │
 │  2. Pull   — sync_collection() download                     │
 │  3. Import — AnkiPackageImporter.run()                      │
-│  4. Push   — sync_collection() upload (or full_upload)      │
-│  5. Media  — taskman.run_in_background(sync_media)          │
-│  6. Exit   — os._exit(code)                                 │
+│  4. Media  — col.media().add_file() for each bundled file   │
+│  5. Push   — sync_collection() upload (or full_upload)      │
+│  6. Media  — col.sync_media() + poll media_sync_status()    │
+│  7. Exit   — os._exit(code)                                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -146,6 +147,10 @@ make clean
 - Per-user data isolation: each email maps to a sanitised directory name under `data_dir`. The
   pre-seeded `prefs21.db` and `User 1/` profile are copied on first run to skip Anki's setup wizard.
 - The sync endpoint can be overridden via `ANKI_SYNC_ENDPOINT` env var for self-hosted servers.
+- Media files are registered via `col.media().add_file(name, data)` after import, not by writing
+  to disk directly. This atomically writes the file, computes its SHA1, and marks it as pending
+  upload in Anki's media sync DB. `col.sync_media(auth)` is then called directly (it spawns its
+  own background thread); progress is polled via `col.media_sync_status()` until `active` is false.
 
 ---
 
@@ -213,6 +218,10 @@ Automated agents (coding assistants, CI bots) working in this repo **must not**:
 - Run integration tests without `RUN_INTEGRATION=1` — they start Docker containers and hit the
   network.
 - Commit `test_real.py` or `*.apkg` files created during manual testing (both are gitignored).
+- Wrap `col.sync_media(auth)` in `taskman.run_in_background` — `sync_media` already spawns its
+  own background thread and returns `None` immediately; wrapping it again breaks progress polling.
+- Write media files directly to `collection.media` on disk — always use `col.media().add_file(name, data)`
+  so Anki atomically registers the file in its sync DB and marks it pending upload.
 
 ---
 
