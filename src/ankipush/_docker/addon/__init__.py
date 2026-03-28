@@ -13,17 +13,21 @@ def _dismiss_dialogs():
             widget.reject()
 
 
+_profile_loaded = False
+
+
 def _load_profile():
+    global _profile_loaded
+    if _profile_loaded or mw.isVisible():
+        return
     try:
-        if not mw.isVisible():
-            _dismiss_dialogs()
-            mw.pm.load(mw.pm.profiles()[0])
-            mw.loadProfile()
-            mw.profileDiag.closeWithoutQuitting()
+        _profile_loaded = True
+        mw.pm.load(mw.pm.profiles()[0])
+        mw.loadProfile()
+        mw.profileDiag.closeWithoutQuitting()
     except Exception as e:
         print(f"[!] Failed to load profile: {e}", flush=True)
-        import sys
-        sys.exit(1)
+        os._exit(1)
 
 
 def _run_in_thread():
@@ -49,11 +53,18 @@ def _on_profile_open():
 
 gui_hooks.profile_did_open.append(_on_profile_open)
 
-# Poll every 500ms to dismiss blocking dialogs and load the profile
+# Poll every 500ms: dismiss any blocking dialogs, then attempt profile load
 def _poll():
     if mw.isVisible():
         return  # profile already loaded
     _dismiss_dialogs()
+    # Wait one extra tick after dismissing before loading, to let Qt process the rejection
+    QTimer.singleShot(200, _try_load)
+
+
+def _try_load():
+    if mw.isVisible():
+        return
     _load_profile()
     if not mw.isVisible():
         QTimer.singleShot(500, _poll)
