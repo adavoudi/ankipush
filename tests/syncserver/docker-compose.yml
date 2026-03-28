@@ -1,8 +1,6 @@
 services:
   syncserver:
-    image: python:3.11-slim
-    command: >
-      sh -c "pip install -q anki && python -m anki.syncserver"
+    build: .
     environment:
       SYNC_USER1: testuser:testpass
       SYNC_PORT: "8080"

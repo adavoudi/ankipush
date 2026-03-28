@@ -7,7 +7,7 @@ test:
 	uv run pytest
 
 test-integration:
-	RUN_INTEGRATION=1 uv run pytest tests/test_integration.py -v
+	RUN_INTEGRATION=1 uv run pytest tests/test_integration.py -v -s
 
 build:
 	uv build

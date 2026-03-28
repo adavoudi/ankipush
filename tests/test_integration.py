@@ -15,7 +15,9 @@ SYNC_ENDPOINT = "http://localhost:8080/"
 
 @pytest.fixture(scope="session", autouse=True)
 def docker_image():
+    print("\n[integration] Building ankipush Docker image...", flush=True)
     build_image()
+    print("[integration] Image build complete.", flush=True)
 
 
 def _extra_env():
@@ -23,7 +25,7 @@ def _extra_env():
 
 
 def _run(apkg_path, tmp_path, email=EMAIL, password=PASSWORD):
-    # Pass sync endpoint override via a wrapper that sets env before calling runner
+    print(f"\n[integration] Running sync_deck for {email} with {os.path.basename(apkg_path)}...", flush=True)
     import ankipush.runner as runner
     original = runner.run_for_user
 
