@@ -147,16 +147,16 @@ AnkiPushAddon/
 **Purpose:** Implement `runner.py` (internal Docker SDK logic) and wire it to the public `sync_deck()` API so callers can import and use the library with a single function call.
 
 ### Tasks
-- [ ] Implement `runner.py` with `run_for_user(email, password, apkg_path, data_dir)` using the Docker SDK
-- [ ] Sanitize email to a safe directory name (e.g., `user@example.com` → `user_example_com`)
-- [ ] Create `<data_dir>/<safe_user_id>/anki-data/` and `<data_dir>/<safe_user_id>/export/` if they don't exist
-- [ ] Copy the `.apkg` file into the user's `export/` directory before launching the container
-- [ ] Mount user-specific directories as Docker volumes (`/data` and `/export`)
-- [ ] Pass credentials as container environment variables (never written to disk)
-- [ ] Stream container logs line-by-line, yielding or printing with a `[<user_id>]` prefix
-- [ ] After container exits, read `ExitCode`; return `True` on `0`, raise an exception with the last log lines on non-zero
-- [ ] Always remove the container in a `finally` block
-- [ ] Implement `sync_deck(email, password, apkg_path, data_dir=None)` in `src/ankipush/__init__.py` that calls `runner.run_for_user()`; `data_dir` defaults to `~/.ankipush/users`
+- [x] Implement `runner.py` with `run_for_user(email, password, apkg_path, data_dir)` using the Docker SDK
+- [x] Sanitize email to a safe directory name (e.g., `user@example.com` → `user_example_com`)
+- [x] Create `<data_dir>/<safe_user_id>/anki-data/` and `<data_dir>/<safe_user_id>/export/` if they don't exist
+- [x] Copy the `.apkg` file into the user's `export/` directory before launching the container
+- [x] Mount user-specific directories as Docker volumes (`/data` and `/export`)
+- [x] Pass credentials as container environment variables (never written to disk)
+- [x] Stream container logs line-by-line, yielding or printing with a `[<user_id>]` prefix
+- [x] After container exits, read `ExitCode`; return `True` on `0`, raise an exception with the last log lines on non-zero
+- [x] Always remove the container in a `finally` block
+- [x] Implement `sync_deck(email, password, apkg_path, data_dir=None)` in `src/ankipush/__init__.py` that calls `runner.run_for_user()`; `data_dir` defaults to `~/.ankipush/users`
 
 ### How to validate
 - **Automated:** `pytest tests/test_runner.py::test_user_dirs_created` — mock Docker client, assert correct directories are created for a given email
