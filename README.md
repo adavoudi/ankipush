@@ -1,58 +1,90 @@
-# Headless Anki
-Headless Anki with the AnkiConnect plugin installed.  
-Useful in automation workflows.
+# ankipush
 
-The default user profile is as barebones as it can get.
+A Python library that headlessly imports `.apkg` deck files into an AnkiWeb account via Docker. No GUI required.
 
-The following volumes are exposed and can be mounted by the user:
-- `/data`: Anki data (Profile, decks etc.).
-- `/export`: Path that can be used for exporting Anki decks, e.g. using the AnkiConnect API.
+## Requirements
+
+- Python 3.10+
+- Docker (running)
+
+## Installation
+
+```bash
+pip install git+https://github.com/your-username/AnkiBotAddon.git
+```
+
+## Setup
+
+Build the Docker image once before first use (takes ~3 minutes):
+
+```python
+from ankipush import build_image
+
+build_image()
+```
+
+Or from the command line if you have the repo cloned:
+
+```bash
+make build-image
+```
+
+> `sync_deck()` will also auto-build the image on first call if it hasn't been built yet.
 
 ## Usage
-To run, execute:
-```bash
-docker run -d -p 8765:8765 -v $(pwd)/export:/export thisisnttheway/headless-anki:latest
+
+```python
+from ankipush import sync_deck
+
+sync_deck(
+    email="you@example.com",
+    password="yourpassword",
+    apkg_path="/path/to/deck.apkg",
+)
 ```
 
-To bring your own Anki profile, mount it on `/data` in the container:
-```bash
-docker run -d -v ~/.local/share/Anki2:/data thisisnttheway/headless-anki:latest
+### Optional: custom data directory
+
+By default, user data is stored in `~/.ankipush/users/`. You can override this:
+
+```python
+sync_deck(
+    email="you@example.com",
+    password="yourpassword",
+    apkg_path="/path/to/deck.apkg",
+    data_dir="/custom/path",
+)
 ```
 
-> [!WARNING]
-> If you do bring your own profile, make sure that your AnkiConnect configuration doesn't have a listen address of `localhost`
+Each user gets an isolated subdirectory keyed by their email, so multiple accounts can be used safely.
 
-> [!TIP] 
-> Launch the container with the environment var `ANKICONNECT_WILDCARD_ORIGIN=1` to set `webCorsOriginList` in AnkiConnects config to `["*"]`.  
-> **This will modify your existing config** if you bring your own profile!  Your existing config file will be backed up to `config.json_bak_ha` first, however.  
-> - If this ENV var is unset/not equal to 0, this backup will be restored (if existing)
+## How it works
 
-You can also use other QT platform plugins by setting the env var `QT_QPA_PLATFORM`:
-```bash
-docker run -e QT_QPA_PLATFORM="offscreen" ...
+1. Starts a headless Anki instance in Docker
+2. Logs in to AnkiWeb (or a custom sync server) using the provided credentials
+3. Pulls the user's existing collection to avoid data loss
+4. Imports the `.apkg` file
+5. Syncs the merged collection back to AnkiWeb
+6. Exits and cleans up the container
+
+## Custom sync server
+
+To use a self-hosted Anki sync server instead of AnkiWeb:
+
+```python
+import os
+os.environ["ANKI_SYNC_ENDPOINT"] = "http://your-server:8080/"
+
+from ankipush import sync_deck
+sync_deck("user", "pass", "deck.apkg")
 ```
 
-By default, Anki will be launched using `QT_QPA_PLATFORM="vnc"`.  
-This will enable Anki to be accessed using a VNC viewer which might help with debugging, provided port `5900` is forwarded:  
-![](images/vnc_gui.png)
+## Development
 
-## Building
-To quickly build the image yourself, issue:
 ```bash
-docker build --progress=plain . -t headless-anki:custom
+git clone https://github.com/your-username/AnkiBotAddon.git
+cd AnkiBotAddon
+make install       # create venv and install deps
+make test          # run unit tests
+make test-integration  # run integration tests (requires Docker)
 ```
-
-Different versions of each component (Anki, QT, AnkiConnect) can be installed.  
-Supply those versions as build flags:
-```bash
-docker build \
-    --build-arg ANKICONNECT_VERSION=25.2.25.0 \
-    --build-arg ANKI_VERSION=25.02.4 \
-    --build-arg QT_VERSION=6 \
-    -t headless-anki:custom \
-    .
-```
-
-For available versions, refer to:
-- [Anki GitHub releases](https://github.com/ankitects/anki/releases)
-- [AnkiConnect releases](https://git.sr.ht/~foosoft/anki-connect/refs)
