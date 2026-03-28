@@ -96,7 +96,7 @@ def run(mw):
     try:
         with zipfile.ZipFile(apkg_path) as zf:
             manifest = json.loads(zf.read("media").decode())
-            mgr = mw.col.media()
+            mgr = mw.col.media
             for zipped_name, real_name in manifest.items():
                 data = zf.read(zipped_name)
                 mgr.add_file(real_name, data)
