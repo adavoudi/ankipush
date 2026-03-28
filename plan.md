@@ -182,6 +182,27 @@ AnkiPushAddon/
 
 ---
 
+## Milestone 9 — Self-Hosted Sync Server Integration Tests
+
+**Purpose:** Replace the AnkiWeb dependency in integration tests with a local self-hosted Anki sync server running in Docker. Tests become fully deterministic, offline, and safe to run in CI without real credentials.
+
+### Tasks
+- [x] Add `ANKI_SYNC_ENDPOINT` env var support to `logic.py`: if set, pass it as the endpoint to `mw.col.sync_login()` and `mw.pm.sync_endpoint()` instead of the default AnkiWeb URL
+- [x] Create `tests/syncserver/docker-compose.yml` that runs the Anki sync server (`ankitects/anki` or pip-based) with `SYNC_USER1=testuser:testpass` on port `8080`
+- [x] Add a `pytest` fixture in `tests/conftest.py` (scoped to session, skipped unless `RUN_INTEGRATION=1`) that starts the sync server via `docker compose up -d`, waits for it to be ready, and tears it down after the session
+- [x] Rewrite `tests/test_integration.py` to use `ANKI_SYNC_ENDPOINT=http://localhost:8080/` and fixed test credentials (`testuser` / `testpass`) instead of real AnkiWeb credentials
+- [x] Test: full flow — `sync_deck()` with valid credentials and a real `.apkg`, assert no exception
+- [x] Test: invalid credentials — assert `RuntimeError` with exit code 1
+- [x] Test: missing `.apkg` — assert `FileNotFoundError` or `RuntimeError` before container starts
+- [x] Test: second run merges — call `sync_deck()` twice with different `.apkg` files, assert both complete without error (validates safety pull prevents data loss)
+- [x] Add `make test-integration` target to `Makefile`
+
+### How to validate
+- **Automated:** `make test-integration` — starts sync server, runs all integration tests, tears down; no AnkiWeb account needed
+- **Human:** Run `make test-integration`, observe all 4 tests pass; inspect `~/.ankipush/users/testuser_example_com/anki-data/` to confirm collection files were written
+
+---
+
 ## Definition of Done
 
 A milestone is complete when:

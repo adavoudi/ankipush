@@ -15,11 +15,12 @@ def run(mw):
 
     if not mw.pm.sync_key():
         print(f"[i] Logging in as {email}...")
+        endpoint = os.environ.get("ANKI_SYNC_ENDPOINT") or mw.pm.sync_endpoint()
         try:
             auth = mw.col.sync_login(
                 username=email,
                 password=password,
-                endpoint=mw.pm.sync_endpoint(),
+                endpoint=endpoint,
             )
             mw.pm.set_sync_key(auth.hkey)
             mw.pm.set_sync_username(email)
