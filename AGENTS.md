@@ -233,8 +233,6 @@ add steps between the existing phases (auth → pull → import → push → med
 
 ## Further Reading
 
-- `plan.md` — full milestone breakdown with task checklists and validation steps
-- `discussion.md` — design discussion log covering architectural decisions
 - `README.md` — user-facing installation and usage guide
 - [Anki sync protocol notes](https://forums.ankiweb.net/t/is-there-any-supported-way-to-authenticate-ankiweb-login-without-using-the-gui/67637)
 - [genanki](https://github.com/kerrickstaley/genanki) — used to generate `.apkg` test fixtures
