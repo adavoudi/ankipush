@@ -10,7 +10,7 @@ A Python library that headlessly imports `.apkg` deck files into an AnkiWeb acco
 ## Installation
 
 ```bash
-pip install git+https://github.com/your-username/AnkiBotAddon.git
+pip install git+https://github.com/your-username/ankipush.git
 ```
 
 ## Setup
@@ -94,8 +94,8 @@ sync_deck("user", "pass", "deck.apkg")
 ## Development
 
 ```bash
-git clone https://github.com/your-username/AnkiBotAddon.git
-cd AnkiBotAddon
+git clone https://github.com/your-username/ankipush.git
+cd ankipush
 make install       # create venv and install deps
 make test          # run unit tests
 make test-integration  # run integration tests (requires Docker)
