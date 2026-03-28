@@ -30,6 +30,8 @@ def run_for_user(
     user_export = os.path.join(data_dir, safe_id, "export")
     os.makedirs(user_data, exist_ok=True)
     os.makedirs(user_export, exist_ok=True)
+    os.chmod(user_data, 0o777)
+    os.chmod(user_export, 0o777)
 
     # Seed prefs21.db and User 1 profile if not present so Anki skips the first-run setup wizard
     prefs_dst = os.path.join(user_data, "prefs21.db")
