@@ -31,6 +31,16 @@ def run_for_user(
     os.makedirs(user_data, exist_ok=True)
     os.makedirs(user_export, exist_ok=True)
 
+    # Seed prefs21.db and User 1 profile if not present so Anki skips the first-run setup wizard
+    prefs_dst = os.path.join(user_data, "prefs21.db")
+    if not os.path.exists(prefs_dst):
+        prefs_src = os.path.join(_DOCKER_DIR, "data", "prefs21.db")
+        shutil.copy2(prefs_src, prefs_dst)
+    user1_dst = os.path.join(user_data, "User 1")
+    if not os.path.exists(user1_dst):
+        user1_src = os.path.join(_DOCKER_DIR, "data", "User 1")
+        shutil.copytree(user1_src, user1_dst)
+
     dest = os.path.join(user_export, os.path.basename(apkg_path))
     shutil.copy2(apkg_path, dest)
 
@@ -42,6 +52,7 @@ def run_for_user(
             "ANKI_EMAIL": email,
             "ANKI_PASS": password,
             "ANKI_APKG_PATH": f"/export/{os.path.basename(apkg_path)}",
+            **({} if not os.environ.get("ANKI_SYNC_ENDPOINT") else {"ANKI_SYNC_ENDPOINT": os.environ["ANKI_SYNC_ENDPOINT"]}),
         },
         volumes={
             user_data: {"bind": "/data", "mode": "rw"},
@@ -51,7 +62,7 @@ def run_for_user(
         remove=False,
     )
     try:
-        for line in container.logs(stream=True):
+        for line in container.logs(stream=True, stdout=True, stderr=True):
             print(f"[{safe_id}] {line.decode().strip()}", flush=True)
         container.reload()
         exit_code = container.attrs["State"]["ExitCode"]

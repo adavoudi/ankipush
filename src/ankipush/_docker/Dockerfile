@@ -29,6 +29,9 @@ ENV LANG=en_US.UTF-8 LANGUAGE=en_US LC_ALL=en_US.UTF-8
 RUN apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /data/addons21 /export && chown -R anki:anki /data /export
+# Pre-seed a default profile so Anki skips the first-run setup wizard
+ADD data /data
+RUN chown -R anki:anki /data
 VOLUME /data
 VOLUME /export
 
@@ -41,6 +44,7 @@ USER anki
 ENV QMLSCENE_DEVICE=softwarecontext
 ENV FONTCONFIG_PATH=/etc/fonts
 ENV QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
-ENV QT_QPA_PLATFORM="offscreen"
+ENV QT_QPA_PLATFORM="vnc"
+ENV PYTHONUNBUFFERED=1
 
 CMD ["/bin/bash", "/app/startup.sh"]

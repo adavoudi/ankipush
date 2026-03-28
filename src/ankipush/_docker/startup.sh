@@ -7,3 +7,4 @@ cp -r /app/addon /data/addons21/ankipush_addon
 
 echo "[i] Launching Anki..."
 anki -b /data
+exit $?

@@ -18,3 +18,8 @@ packages = ["src/ankipush"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "genanki>=0.13.1",
+]
