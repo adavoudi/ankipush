@@ -43,6 +43,18 @@ sync_deck(
 )
 ```
 
+### Async usage
+
+```python
+from ankipush import async_sync_deck
+
+await async_sync_deck(
+    email="you@example.com",
+    password="yourpassword",
+    apkg_path="/path/to/deck.apkg",
+)
+```
+
 ### Optional: custom data directory
 
 By default, user data is stored in `~/.ankipush/users/`. You can override this:
