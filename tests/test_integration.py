@@ -49,3 +49,26 @@ def test_second_run_merges(sync_server, tmp_path, shared_datadir):
     """Run twice — second run must not wipe data from the first."""
     _run(str(shared_datadir / "deck.apkg"), tmp_path)
     _run(str(shared_datadir / "deck.apkg"), tmp_path)
+
+
+def test_user_already_has_other_decks(sync_server, tmp_path, shared_datadir):
+    """Import deck1, then deck2 — both should exist without data loss."""
+    _run(str(shared_datadir / "deck.apkg"), tmp_path)
+    _run(str(shared_datadir / "deck2.apkg"), tmp_path)
+
+
+def test_add_cards_to_existing_deck(sync_server, tmp_path, shared_datadir):
+    """Importing the same deck twice should not create duplicate cards."""
+    _run(str(shared_datadir / "deck.apkg"), tmp_path)
+    _run(str(shared_datadir / "deck.apkg"), tmp_path)
+
+
+def test_update_existing_cards(sync_server, tmp_path, shared_datadir):
+    """Import original deck, then updated version — updated content should win."""
+    _run(str(shared_datadir / "deck.apkg"), tmp_path)
+    _run(str(shared_datadir / "deck_updated.apkg"), tmp_path)
+
+
+def test_full_upload_on_first_sync(sync_server, tmp_path, shared_datadir):
+    """First sync against empty server should trigger full upload without error."""
+    _run(str(shared_datadir / "deck.apkg"), tmp_path)

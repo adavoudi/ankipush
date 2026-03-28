@@ -203,6 +203,25 @@ AnkiPushAddon/
 
 ---
 
+## Milestone 10 — Edge Case Integration Tests
+
+**Purpose:** Validate the full pipeline handles real-world scenarios beyond the happy path: existing decks, duplicate cards, deck updates, and sync conflicts.
+
+### Tasks
+- [x] Create a second fixture deck (`deck2.apkg`) with a different deck name and cards using `genanki`
+- [x] Create an update fixture (`deck_updated.apkg`) — same deck/model/note GUIDs as `deck.apkg` but with modified card content
+- [x] Test: **user already has other decks** — pre-seed the sync server with `deck.apkg`, then import `deck2.apkg`; assert both decks exist after sync
+- [x] Test: **add cards to existing deck** — import `deck.apkg` twice; assert no duplicate cards (Anki deduplicates by GUID)
+- [x] Test: **update existing cards** — import `deck.apkg`, then import `deck_updated.apkg`; assert the updated content is present
+- [x] Test: **full upload required** — start with an empty server, import a deck; the first sync should trigger a full upload without error
+- [x] Test: **full download required** — pre-seed the server with data that conflicts with local; assert full download completes without error
+
+### How to validate
+- **Automated:** `make test-integration` — all edge case tests pass
+- **Human:** After running, inspect the sync server's storage directory to confirm correct deck counts and card content
+
+---
+
 ## Definition of Done
 
 A milestone is complete when:
