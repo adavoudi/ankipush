@@ -10,8 +10,14 @@ from logic import AnkiPushExit
 def make_mw(sync_auth=None, has_media_syncer=False):
     mw = MagicMock()
     mw.pm.sync_auth.return_value = sync_auth
-    if not has_media_syncer:
-        del mw.media_syncer
+    # media_sync_status returns inactive by default so poll loop exits immediately
+    media_status = MagicMock()
+    media_status.active = False
+    mw.col.media_sync_status.return_value = media_status
+    # taskman.run_in_background calls on_done immediately
+    def fake_run_in_background(fn, on_done):
+        on_done(None)
+    mw.taskman.run_in_background.side_effect = fake_run_in_background
     return mw
 
 

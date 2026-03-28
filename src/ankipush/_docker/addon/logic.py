@@ -96,20 +96,52 @@ def run(mw):
         out = mw.col.sync_collection(auth, True)
         if out.new_endpoint:
             mw.pm.set_current_sync_url(out.new_endpoint)
+            # Refresh auth with updated endpoint (fixes "missing original size" on first sync)
+            auth = mw.pm.sync_auth()
         if out.required == out.NO_CHANGES or out.required == out.NORMAL_SYNC:
             _print("[i] Sync complete.")
         elif out.required == out.FULL_UPLOAD:
             _print("[i] Full upload required, uploading...")
+            mw.col.close_for_full_sync()
             mw.col.full_upload_or_download(auth=auth, server_usn=None, upload=True)
+            mw.reopen(after_full_sync=True)
             _print("[i] Full upload complete.")
         elif out.required == out.FULL_DOWNLOAD:
             _print("[i] Full download required, downloading...")
+            mw.col.close_for_full_sync()
             mw.col.full_upload_or_download(auth=auth, server_usn=None, upload=False)
+            mw.reopen(after_full_sync=True)
             _print("[i] Full download complete.")
     except Exception as e:
         _print(f"[!] Sync push failed: {e}")
         _exit(1)
 
-    # Media sync not supported in headless mode
+    # --- Media sync ---
+    _print("[i] Syncing media to AnkiWeb...")
+    try:
+        import time
+        import threading
+        media_auth = mw.pm.sync_auth()
+        done = threading.Event()
+
+        def on_done(fut):
+            done.set()
+
+        mw.taskman.run_in_background(lambda: mw.col.sync_media(media_auth), on_done)
+
+        # Poll until done, with a 120s timeout
+        deadline = time.time() + 120
+        while time.time() < deadline:
+            if done.wait(timeout=0.5):
+                break
+            status = mw.col.media_sync_status()
+            if not status.active:
+                break
+            p = status.progress
+            _print(f"[i] Media: +{p.added} -{p.removed} checked:{p.checked}")
+
+        _print("[i] Media sync complete.")
+    except Exception as e:
+        _print(f"[!] Media sync error (non-fatal): {e}")
 
     _exit(0)
