@@ -171,10 +171,10 @@ AnkiPushAddon/
 **Purpose:** Validate the complete pipeline works together as an installed library: build image → run container → import deck → sync to AnkiWeb → clean exit.
 
 ### Tasks
-- [ ] Create `tests/test_integration.py` (skipped unless `RUN_INTEGRATION=1` env var is set)
-- [ ] Test: call `sync_deck(email, password, apkg_path)` with valid credentials and a real `.apkg`, assert it returns without raising
-- [ ] Test: call with invalid credentials, assert it raises an exception containing `Authentication failed`
-- [ ] Test: call with a non-existent `.apkg` path, assert it raises an exception containing the missing file path
+- [x] Create `tests/test_integration.py` (skipped unless `RUN_INTEGRATION=1` env var is set)
+- [x] Test: call `sync_deck(email, password, apkg_path)` with valid credentials and a real `.apkg`, assert it returns without raising
+- [x] Test: call with invalid credentials, assert it raises an exception containing `Authentication failed`
+- [x] Test: call with a non-existent `.apkg` path, assert it raises an exception containing the missing file path
 
 ### How to validate
 - **Automated:** `RUN_INTEGRATION=1 pytest tests/test_integration.py` — requires Docker daemon and valid AnkiWeb credentials in `.env`
