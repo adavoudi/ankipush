@@ -58,12 +58,12 @@ AnkiPushAddon/
 **Purpose:** Produce a clean Docker image (bundled inside the library under `src/ankipush/_docker/`) that runs headless Anki with only our custom addon loaded, and no AnkiConnect.
 
 ### Tasks
-- [ ] Move `Dockerfile` and `startup.sh` into `src/ankipush/_docker/`
-- [ ] Rewrite `Dockerfile`: remove all AnkiConnect download/symlink/config steps; add `COPY addon /app/addon`
-- [ ] Rewrite `startup.sh`: remove AnkiConnect CORS logic; add `cp -r /app/addon /data/addons21/ankipush_addon` before launching `anki -b /data`
-- [ ] Create `src/ankipush/_docker/addon/manifest.json` with addon name and package fields
-- [ ] Create `src/ankipush/_docker/addon/__init__.py` as a stub (`print("[i] Addon loaded")`) so the image can be validated before full logic is added
-- [ ] In `runner.py`, use `importlib.resources` (or `__file__`) to locate the `_docker/` directory at runtime so the image builds correctly regardless of install location
+- [x] Move `Dockerfile` and `startup.sh` into `src/ankipush/_docker/`
+- [x] Rewrite `Dockerfile`: remove all AnkiConnect download/symlink/config steps; add `COPY addon /app/addon`
+- [x] Rewrite `startup.sh`: remove AnkiConnect CORS logic; add `cp -r /app/addon /data/addons21/ankipush_addon` before launching `anki -b /data`
+- [x] Create `src/ankipush/_docker/addon/manifest.json` with addon name and package fields
+- [x] Create `src/ankipush/_docker/addon/__init__.py` as a stub (`print("[i] Addon loaded")`) so the image can be validated before full logic is added
+- [x] In `runner.py`, use `importlib.resources` (or `__file__`) to locate the `_docker/` directory at runtime so the image builds correctly regardless of install location
 
 ### How to validate
 - **Automated:** `pytest tests/test_runner.py::test_image_builds` — programmatically builds the image from the bundled Dockerfile and asserts no exception
@@ -76,12 +76,12 @@ AnkiPushAddon/
 **Purpose:** The addon reads `ANKI_EMAIL` and `ANKI_PASS` from environment variables and authenticates with AnkiWeb using the backend API, storing the session key — with no GUI dialogs.
 
 ### Tasks
-- [ ] In `anki_addon/__init__.py`, hook into `gui_hooks.profile_did_open`
-- [ ] Read `ANKI_EMAIL` and `ANKI_PASS` from `os.environ`; exit with code `1` and a clear error message if either is missing
-- [ ] Call `mw.col.sync_login(username, password, endpoint=mw.pm.sync_endpoint())` and store result via `mw.pm.set_sync_key()` and `mw.pm.set_sync_username()`
-- [ ] Skip login if `mw.pm.sync_key()` already exists (session reuse)
-- [ ] On `SyncError` with kind `AUTH`, print a clear error message and exit with code `1`
-- [ ] On any other exception, print the error and exit with code `1`
+- [x] In `anki_addon/__init__.py`, hook into `gui_hooks.profile_did_open`
+- [x] Read `ANKI_EMAIL` and `ANKI_PASS` from `os.environ`; exit with code `1` and a clear error message if either is missing
+- [x] Call `mw.col.sync_login(username, password, endpoint=mw.pm.sync_endpoint())` and store result via `mw.pm.set_sync_key()` and `mw.pm.set_sync_username()`
+- [x] Skip login if `mw.pm.sync_key()` already exists (session reuse)
+- [x] On `SyncError` with kind `AUTH`, print a clear error message and exit with code `1`
+- [x] On any other exception, print the error and exit with code `1`
 
 ### How to validate
 - **Automated:** `pytest tests/test_addon_logic.py::test_login_missing_env` — mock `os.environ` with no credentials, assert `sys.exit(1)` is raised
@@ -95,10 +95,10 @@ AnkiPushAddon/
 **Purpose:** Before importing anything, pull the user's existing AnkiWeb collection into the local container database to prevent overwriting their data.
 
 ### Tasks
-- [ ] After successful login, call `mw.col.sync_collection(auth, True)` to perform an incremental sync (downloads existing data)
-- [ ] Handle the case where the local collection is empty/new (first run) — a full download is expected and should not be treated as an error
-- [ ] Log sync progress clearly: `[i] Pulling existing collection from AnkiWeb...` and `[i] Pull complete.`
-- [ ] On sync failure, print error and exit with code `1`
+- [x] After successful login, call `mw.col.sync_collection(auth, True)` to perform an incremental sync (downloads existing data)
+- [x] Handle the case where the local collection is empty/new (first run) — a full download is expected and should not be treated as an error
+- [x] Log sync progress clearly: `[i] Pulling existing collection from AnkiWeb...` and `[i] Pull complete.`
+- [x] On sync failure, print error and exit with code `1`
 
 ### How to validate
 - **Automated:** `pytest tests/test_addon_logic.py::test_sync_pull_called` — mock `mw.col.sync_collection`, assert it is called before any import
@@ -111,11 +111,11 @@ AnkiPushAddon/
 **Purpose:** Import the deck package from the path specified by `ANKI_APKG_PATH` into the local Anki collection.
 
 ### Tasks
-- [ ] Read `ANKI_APKG_PATH` from `os.environ`; default to `/export/deck.apkg` if not set
-- [ ] Check that the file exists; if not, print a clear error and exit with code `1`
-- [ ] Call `mw.col.import_file(apkg_path)` (or `import_package` if the Anki 25.x API differs — handle both with a try/fallback)
-- [ ] Log `[i] Importing <filename>...` and `[i] Import complete.`
-- [ ] On import failure, print error and exit with code `1`
+- [x] Read `ANKI_APKG_PATH` from `os.environ`; default to `/export/deck.apkg` if not set
+- [x] Check that the file exists; if not, print a clear error and exit with code `1`
+- [x] Call `mw.col.import_file(apkg_path)` (or `import_package` if the Anki 25.x API differs — handle both with a try/fallback)
+- [x] Log `[i] Importing <filename>...` and `[i] Import complete.`
+- [x] On import failure, print error and exit with code `1`
 
 ### How to validate
 - **Automated:** `pytest tests/test_addon_logic.py::test_import_missing_file` — mock `os.path.exists` to return `False`, assert `sys.exit(1)`
@@ -129,11 +129,11 @@ AnkiPushAddon/
 **Purpose:** After import, push the merged collection back to AnkiWeb and wait for background media sync to finish before shutting down.
 
 ### Tasks
-- [ ] After import, call `mw.col.sync_collection(auth, True)` for an incremental push
-- [ ] If the collection requires a full sync (schema changed), call `mw.col.full_upload(auth)` instead
-- [ ] After database sync, check `mw.media_syncer` existence; if present, call `.start()` and loop with `time.sleep(1)` until `is_syncing()` returns `False`
-- [ ] Log `[i] Syncing to AnkiWeb...`, `[i] Sync complete.`, `[i] Waiting for media sync...`, `[i] Media sync complete.`
-- [ ] Call `mw.close()` then `sys.exit(0)` for a graceful shutdown
+- [x] After import, call `mw.col.sync_collection(auth, True)` for an incremental push
+- [x] If the collection requires a full sync (schema changed), call `mw.col.full_upload(auth)` instead
+- [x] After database sync, check `mw.media_syncer` existence; if present, call `.start()` and loop with `time.sleep(1)` until `is_syncing()` returns `False`
+- [x] Log `[i] Syncing to AnkiWeb...`, `[i] Sync complete.`, `[i] Waiting for media sync...`, `[i] Media sync complete.`
+- [x] Call `mw.close()` then `sys.exit(0)` for a graceful shutdown
 
 ### How to validate
 - **Automated:** `pytest tests/test_addon_logic.py::test_sync_push_called` — mock sync functions, assert push is called after import
