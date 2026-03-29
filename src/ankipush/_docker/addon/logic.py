@@ -97,9 +97,12 @@ def run(mw):
         with zipfile.ZipFile(apkg_path) as zf:
             manifest = json.loads(zf.read("media").decode())
             mgr = mw.col.media
+            media_dir = mgr.dir()
             for zipped_name, real_name in manifest.items():
-                data = zf.read(zipped_name)
-                mgr.add_file(real_name, data)
+                dest = os.path.join(media_dir, real_name)
+                with zf.open(zipped_name) as src, open(dest, "wb") as dst:
+                    dst.write(src.read())
+                mgr.add_file(dest)
                 _print(f"[i] Registered media: {real_name}")
     except Exception as e:
         _print(f"[!] Media extraction error: {e}")
