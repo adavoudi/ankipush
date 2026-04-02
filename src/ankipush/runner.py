@@ -30,8 +30,6 @@ def run_for_user(
     user_export = os.path.join(data_dir, safe_id, "export")
     os.makedirs(user_data, exist_ok=True)
     os.makedirs(user_export, exist_ok=True)
-    os.chmod(user_data, 0o777)
-    os.chmod(user_export, 0o777)
 
     # Seed prefs21.db and User 1 profile if not present so Anki skips the first-run setup wizard
     prefs_dst = os.path.join(user_data, "prefs21.db")
@@ -42,6 +40,13 @@ def run_for_user(
     if not os.path.exists(user1_dst):
         user1_src = os.path.join(_DOCKER_DIR, "data", "User 1")
         shutil.copytree(user1_src, user1_dst)
+
+    # Recursively grant full permissions so the container (running as root) can write freely
+    for root, dirs, files in os.walk(user_data):
+        os.chmod(root, 0o777)
+        for f in files:
+            os.chmod(os.path.join(root, f), 0o666)
+    os.chmod(user_export, 0o777)
 
     dest = os.path.join(user_export, os.path.basename(apkg_path))
     shutil.copy2(apkg_path, dest)
