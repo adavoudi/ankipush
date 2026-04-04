@@ -10,7 +10,7 @@ A Python library that headlessly imports `.apkg` deck files into an AnkiWeb acco
 ## Installation
 
 ```bash
-pip install git+https://github.com/your-username/ankipush.git
+pip install git+https://github.com/adavoudi/ankipush.git
 ```
 
 ## Setup
